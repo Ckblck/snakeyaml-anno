@@ -14,6 +14,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Construct;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -37,7 +38,7 @@ import de.beosign.snakeyamlanno.property.YamlProperty;
  * 
  * @author florian
  */
-public class AnnotationAwareConstructor extends Constructor {
+public class AnnotationAwareConstructor extends CustomClassLoaderConstructor {
     private Map<Class<?>, YamlConstructBy> constructByMap = new HashMap<>();
     private Map<Class<?>, YamlInstantiateBy> instantiateByMap = new HashMap<>();
     private IdentityHashMap<Node, Property> nodeToPropertyMap = new IdentityHashMap<>();
@@ -59,7 +60,7 @@ public class AnnotationAwareConstructor extends Constructor {
      * @param caseInsensitive true if parsing should be independent of case of keys
      */
     public AnnotationAwareConstructor(Class<? extends Object> theRoot, boolean caseInsensitive) {
-        super(theRoot);
+        super(theRoot.getClassLoader());
         setPropertyUtils(new AnnotationAwarePropertyUtils(caseInsensitive));
         yamlClassConstructors.put(NodeId.mapping, new AnnotationAwareMappingConstructor());
         yamlClassConstructors.put(NodeId.scalar, new AnnotationAwareScalarConstructor());
