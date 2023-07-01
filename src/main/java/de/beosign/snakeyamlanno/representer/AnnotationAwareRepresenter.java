@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -68,6 +69,7 @@ public class AnnotationAwareRepresenter extends Representer {
      * @param skipEmpty if true, empty properties are skipped.
      */
     public AnnotationAwareRepresenter(boolean skipEmpty) {
+        super(new DumperOptions());
         setPropertyUtils(new AnnotationAwarePropertyUtils());
         this.skipEmpty = skipEmpty;
     }

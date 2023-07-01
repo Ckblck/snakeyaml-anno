@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Construct;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -60,7 +61,7 @@ public class AnnotationAwareConstructor extends CustomClassLoaderConstructor {
      * @param caseInsensitive true if parsing should be independent of case of keys
      */
     public AnnotationAwareConstructor(Class<? extends Object> theRoot, boolean caseInsensitive) {
-        super(theRoot.getClassLoader());
+        super(theRoot.getClassLoader(), new LoaderOptions());
         setPropertyUtils(new AnnotationAwarePropertyUtils(caseInsensitive));
         yamlClassConstructors.put(NodeId.mapping, new AnnotationAwareMappingConstructor());
         yamlClassConstructors.put(NodeId.scalar, new AnnotationAwareScalarConstructor());
@@ -84,7 +85,7 @@ public class AnnotationAwareConstructor extends CustomClassLoaderConstructor {
      * Overridden to implement the "instantiator" feature.
      */
     @Override
-    protected Object newInstance(Class<?> ancestor, Node node, boolean tryDefault) throws InstantiationException {
+    protected Object newInstance(Class<?> ancestor, Node node, boolean tryDefault) {
         /*
          *  Create an instance using the following order:
          *  1. check node type for an instantiator registration and create one if present => done
@@ -95,13 +96,17 @@ public class AnnotationAwareConstructor extends CustomClassLoaderConstructor {
         if (instantiateBy != null) {
             try {
                 return instantiateBy.value().newInstance().createInstance(node, tryDefault, ancestor, defaultInstantiator, globalInstantiator);
-            } catch (IllegalAccessException e) {
-                throw new InstantiationException(
+            } catch (IllegalAccessException | InstantiationException e) {
+                throw new RuntimeException(
                         "Cannot create instance using custom instantiator " + instantiateBy.value() + "for node " + node + " of type " + node.getType() + ": " + e.getMessage());
             }
         }
 
-        return globalInstantiator.createInstance(node, tryDefault, ancestor, defaultInstantiator);
+        try {
+            return globalInstantiator.createInstance(node, tryDefault, ancestor, defaultInstantiator);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
